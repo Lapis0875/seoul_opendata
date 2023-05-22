@@ -29,7 +29,7 @@ poetry install
 ### 3. 실행
 
 ```sh
-poetry run python main.py
+poetry run uvicorn main:app --reload
 ```
 
 를 사용해 서버를 구동할 수 있습니다.
