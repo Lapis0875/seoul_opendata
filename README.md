@@ -11,13 +11,27 @@
 
 ### 2. poetry 세팅
 
-이 프로젝트는 poetry를 사용해 설정되었습니다. poetry를 설치하고, 가상환경을 만들어주세요.
+이 프로젝트는 poetry를 사용해 설정되었습니다. poetry를 설치해주세요.
+이후 `main.py`가 위치한 경로로 이동해 아래 명령어를 사용해주세요.
+
+```sh
+poetry shell
+```
+
+위 명령어는 poetry 프로젝트의 가상환경을 실행해 줍니다.
+
+```sh
+poetry install
+```
+
+위 명령어는 poetry 프로젝트에 필요한 의존성 패키지들을 설치해 줍니다.
 
 ### 3. 실행
 
 ```sh
-poetry run main.py
+poetry run python main.py
 ```
+
 를 사용해 서버를 구동할 수 있습니다.
 
 ## 그래서, 완성됬나요?
