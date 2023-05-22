@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "seoul-opendata"
+version = "0.1.0"
+description = ""
+authors = ["Lapis0875 <lapis0875@kakao.com>"]
+readme = "README.md"
+packages = [{include = "seoul_opendata"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.95.1"
+uvicorn = {extras = ["standard"], version = "^0.22.0"}
+motor = "^3.1.2"
+firebase-admin = "^6.1.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
