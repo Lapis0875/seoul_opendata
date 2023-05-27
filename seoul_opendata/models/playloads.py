@@ -1,4 +1,5 @@
-from typing import Optional, TypedDict
+from typing import Optional, Required, TypedDict
+from seoul_opendata.models.location import Location
 
 from seoul_opendata.models.user import Gender
 # User Data
@@ -11,23 +12,25 @@ class UserCreate(TypedDict):
     email: Optional[str]
     age: int
     gender: Gender
+    location: Location
 
-class UserRead(TypedDict):
-    id: str
-    email: Optional[str]
-    phone: Optional[str]
+class UserRead(TypedDict, total=False):
+    id: Required[str]
+    email: str
+    phone: str
 
-class UserUpdate(TypedDict):
-    id: str     # id used to find user.
+class UserUpdate(TypedDict, total=False):
+    id: Required[str]     # id used to find user.
     # updatable data
-    password: Optional[str] 
-    name: Optional[str]
-    email: Optional[str]
+    password: str 
+    name: str
+    email: str
     age: int
+    location: Location
 
-class UserDelete(TypedDict):
-    id: str
-    password: str
+class UserDelete(TypedDict, total=False):
+    id: Required[str]
+    password: Required[str]
     phone: str
 
 class UserData(TypedDict):
@@ -38,6 +41,7 @@ class UserData(TypedDict):
     password: str
     age: int
     gender: Gender
+    location: Location
 
 class UserLogin(TypedDict):
     id: str

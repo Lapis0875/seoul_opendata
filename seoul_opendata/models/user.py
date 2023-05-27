@@ -2,8 +2,7 @@ from enum import Enum, StrEnum
 from typing import TYPE_CHECKING, Literal, Optional
 from pydantic import BaseModel
 
-if TYPE_CHECKING:
-    from seoul_opendata.models.facility import DayCareCenter, Kindergarten
+from seoul_opendata.models.location import Location
 
 class Gender(StrEnum):
     Male = M = "Male"
@@ -18,6 +17,7 @@ class UserBase(BaseModel):
     email: Optional[str]
     age: int
     gender: Gender
+    location: Location
 
 class ParentUser(UserBase):
     """부모 유저 모델."""

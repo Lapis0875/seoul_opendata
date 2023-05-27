@@ -3,6 +3,7 @@ from typing import Any, Final, cast
 from firebase_admin import db
 from firebase_admin.credentials import Certificate
 import firebase_admin
+from seoul_opendata.models.location import Location
 
 from seoul_opendata.models.playloads import UserCreate, UserData, UserDelete, UserRead, UserUpdate
 from seoul_opendata.models.user import Gender, ParentUser
@@ -82,8 +83,9 @@ class FirebaseController:
             "phone": "010-1234-5678",
             "email": "lapis0875@gmail.com",
             "age": 21,
-            "gender": Gender.Male
+            "gender": Gender.Male,
+            "location": Location.GangBuk
         })
         self.parentUser.read({"id": "lapis0875"})
         self.parentUser.update({"id": "lapis0875", "password": "5678"})
-        self.parentUser.delete({"id": "lapis0875"})
+        self.parentUser.delete({"id": "lapis0875", "password": "5678"})
