@@ -1,18 +1,20 @@
+from datetime import date
 from typing import Optional, Required, TypedDict
+from seoul_opendata.models.establish_type import EstablishType
 from seoul_opendata.models.location import Location
 
 from seoul_opendata.models.user import Gender
 # User Data
 
-class UserCreate(TypedDict):
-    id: str
-    password: str
-    name: str
-    phone: str
-    email: Optional[str]
-    age: int
-    gender: Gender
-    location: Location
+class UserCreate(TypedDict, total=False):
+    id: Required[str]
+    password: Required[str]
+    name: Required[str]
+    phone: Required[str]
+    email: str
+    age: Required[int]
+    gender: Required[Gender]
+    location: Required[Location]
 
 class UserRead(TypedDict, total=False):
     id: Required[str]
@@ -49,17 +51,39 @@ class UserLogin(TypedDict):
 
 # Facility Data
 
-class FacilityCreate(TypedDict):
-    pass
+class ChildSchoolCreate(TypedDict):
+    code: str                  # 유치원 고유 id
+    name: str                       # 시설명
+    representerName: str            # 대표자명
+    tel: str                        # 시설 연락처
+    location: Location              # 지역
+    address: str                    # 주소
+    establishType: EstablishType    # 설립유형
+    establishAt: str                # 설립일자
+    openingTime: str                # 운영 시간
 
-class FacilityRead(TypedDict):
-    pass
+class ChildSchoolRead(TypedDict, total=False):
+    code: Required[str]        # 유치원 고유 id
+    name: str                       # 시설명
 
-class FacilityUpdate(TypedDict):
-    pass
+class ChildSchoolUpdate(TypedDict, total=False):
+    code: Required[str]                  # 유치원 고유 id
+    name: str                       # 시설명
+    representerName: str            # 대표자명
+    tel: str                        # 시설 연락처
+    openingTime: str                # 운영 시간
 
-class FacilityDelete(TypedDict):
-    pass
+class ChildSchoolDelete(TypedDict, total=False):
+    code: Required[str]        # 유치원 고유 id
+    name: str                       # 시설명
 
-class FacilityData(TypedDict):
-    pass
+class ChildSchoolData(TypedDict):
+    code: str                  # 유치원 고유 id
+    name: str                       # 시설명
+    representerName: str            # 대표자명
+    tel: str                        # 시설 연락처
+    location: Location              # 지역
+    address: str                    # 주소
+    establishType: EstablishType    # 설립유형
+    establishAt: str                # 설립일자
+    openingTime: str                # 운영 시간

@@ -34,6 +34,12 @@ poetry run uvicorn main:app --reload
 
 를 사용해 서버를 구동할 수 있습니다.
 
+```sh
+gunicorn -k uvicorn.workers.UvicornWorker --access-logfile ./gunicorn-access.log main:app --bind 0.0.0.0:8000 --workers 2 --daemon
+```
+
+worker를 여러 개 구동하려면, 이 명령어로 사용해주세요.
+
 ## 그래서, 완성됬나요?
 
 아니오. 아직 작업중이에요!!! [WIP]

@@ -1,5 +1,5 @@
-from enum import Enum, StrEnum
-from typing import TYPE_CHECKING, Literal, Optional
+from enum import StrEnum
+from typing import TYPE_CHECKING, Optional
 from pydantic import BaseModel
 
 from seoul_opendata.models.location import Location

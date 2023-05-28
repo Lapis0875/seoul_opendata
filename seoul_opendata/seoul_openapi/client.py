@@ -1,20 +1,30 @@
 from functools import wraps
 import json
 import os
+import re
 from typing import Any, Callable, ClassVar, Final, Optional, TypedDict
 
 import requests
 
+from seoul_opendata.firebase.controller import DB
+from seoul_opendata.models.facility import EstablishType
+from seoul_opendata.models.location import Location
+
+ChildSchoolUniqueKey: Final[str] = "KINDERCODE"
+OpenDataAPICallers: Final[list[str]] = []
+LocationRegex: Final[re.Pattern] = re.compile(r"서울특별시 ([ㄱ-ㅎ|ㅏ-ㅣ|가-힣]+구) [ㄱ-ㅎ|ㅏ-ㅣ|가-힣\d\w ]+")
+
 class OpenApiOptionExtras(TypedDict):
     startIndex: int
     endIndex: int
+        
 
-def opendata(options: Optional[OpenApiOptionExtras] = None):
+def opendata(options: Optional[OpenApiOptionExtras] = {"startIndex": 1, "endIndex": 1000}):
     """공공데이터 api를 호출하는 메소드를 자동 구현하는 데코레이터입니다.
     API의 서비스 명칭이 모두 childSchool~로 시작한다는 점에서 착안했습니다.
 
     Args:
-        options (Optional[OpenApiOptionExtras], optional): 가져올 데이터의 시작 인덱스와 끝 인덱스를 설정합니다. 기본 값은 None입니다.
+        options (Optional[OpenApiOptionExtras], optional): 가져올 데이터의 시작 인덱스와 끝 인덱스를 설정합니다. 기본 값은 1부터 1000입니다.
     """
     def openDataDeco(meth: Callable[["SeoulOpenAPI"], Any]) -> Callable[["SeoulOpenAPI"], dict[str, Any]]:
         """실제 사용될 데코레이터입니다.
@@ -38,14 +48,18 @@ def opendata(options: Optional[OpenApiOptionExtras] = None):
                 url += f"/{options['startIndex']}/{options['endIndex']}"
                 
             resp: requests.Response = self.session.get(url)
-            data: dict[str, Any] = resp.json()
+            # print(resp.content)
             
+            if (resp.status_code != 200):
+                # handle exceptions
+                return {}
+            
+            data: dict[str, Any] = resp.json()
             self.saveData(data, meth.__name__)
             return data
+        
+        OpenDataAPICallers.append(wrapper.__name__)
         return wrapper
-    
-        SeoulOpenAPI.__api_calls__.append(wrapper.__name__)
-
     return openDataDeco
 
 
@@ -95,15 +109,163 @@ class SeoulOpenAPI:
             http://data.seoul.go.kr/dataList/OA-20577/S/1/datasetView.do
         """
     
-    def fetchall(self):
+    @opendata()
+    def childSchoolBus(self):
+        """
+        서울시 유치원 통학차량 현황
+        서울특별시 소재 유치원의 차량운행여부, 운행차량 수, 신고차량 수 등 현황입니다.
+        유치원알리미(https://e-childschoolinfo.moe.go.kr) 에서 제공되는 자료입니다.
+        
+        Reference:
+            http://data.seoul.go.kr/dataList/OA-20572/S/1/datasetView.do
+        """
+    
+    @opendata()
+    def childSchoolMeal(self):
+        """
+        서울시 유치원 급식운영 현황
+        서울특별시 소재 유치원 급식정보 현황입니다.
+        유치원알리미(https://e-childschoolinfo.moe.go.kr) 에서 제공되는 자료입니다.
+        
+        Reference:
+            http://data.seoul.go.kr/dataList/OA-20571/S/1/datasetView.do
+        """
+    
+    @opendata()
+    def childSchoolYearWork(self):
+        """
+        서울시 유치원 직원 근속연수 현황
+        서울특별시 소재 유치원 교사의 근속 현황입니다.
+        유치원알리미(https://e-childschoolinfo.moe.go.kr) 에서 제공되는 자료입니다.
+        
+        Reference:
+            http://data.seoul.go.kr/dataList/OA-20573/S/1/datasetView.do
+        """
+    
+    @opendata()
+    def childSchoolLesson(self):
+        """
+        서울시 유치원 수업일수 현황
+        서울특별시 소재 유치원의 수업일수 현황입니다.
+        유치원알리미(https://e-childschoolinfo.moe.go.kr) 에서 제공되는 자료입니다.
+        
+        Reference:
+            http://data.seoul.go.kr/dataList/OA-20570/S/1/datasetView.do
+        """
+    
+    @opendata()
+    def childSchoolSafetyEdu(self):
+        """
+        서울시 유치원 안전점검 교육 실시 현황
+        서울특별시 소재 유치원의 안전점검ㆍ교육 실시 현황입니다.
+        유치원알리미(https://e-childschoolinfo.moe.go.kr) 에서 제공되는 자료입니다.
+        
+        Reference:
+            http://data.seoul.go.kr/dataList/OA-20575/S/1/datasetView.do
+        """
+    
+    @opendata()
+    def childSchoolTeacher(self):
+        """
+        서울시 유치원 직위 자격별 교직원 현황
+        서울특별시 소재 유치원의 직위별 교사수, 보건교사, 영양교사 등 인력구성 현황입니다.
+        유치원알리미(https://e-childschoolinfo.moe.go.kr) 에서 제공되는 자료입니다.
+        
+        Reference:
+            http://data.seoul.go.kr/dataList/OA-20569/S/1/datasetView.do
+        """
+    
+    @opendata()
+    def childSchoolClassArea(self):
+        """
+        서울시 유치원 교실면적 현황
+        서울특별시 소재 유치원 기본정보 교실수, 면적, 체육장등 현황입니다.
+        유치원알리미(https://e-childschoolinfo.moe.go.kr) 에서 제공되는 자료입니다.
+        
+        Reference:
+            http://data.seoul.go.kr/dataList/OA-20568/S/1/datasetView.do
+        """
+    
+    @opendata()
+    def childSchoolSociety(self):
+        """
+        서울시 유치원 공제회 가입 현황
+        서울특별시 소재 유치원의 각종 공제회 가입 현황입니다.
+        유치원알리미(https://e-childschoolinfo.moe.go.kr) 에서 제공되는 자료입니다.
+        
+        Reference:
+            http://data.seoul.go.kr/dataList/OA-20576/S/1/datasetView.do
+        """
+    
+    @opendata()
+    def childSchoolBuilding(self):
+        """
+        서울시 유치원 건물현황
+        서울특별시 소재 유치원 건물의 건축년도, 건물층수, 전용면적 등 현황입니다.
+        유치원알리미(https://e-childschoolinfo.moe.go.kr) 에서 제공되는 자료입니다.
+        
+        Reference:
+            http://data.seoul.go.kr/dataList/OA-20567/S/1/datasetView.do
+        """
+    
+    def fetchall(self) -> dict[str, list[dict[str, Any]]]:
         """등록된 모든 공공데이터 api를 호출합니다."""
-        for api_call in self.__api_calls__:
-            getattr(self, api_call)()
+        data: dict[str, list[dict[str, Any]]] = {}
+        
+        for api_call in OpenDataAPICallers:
+            print(f"Fetching api `{api_call}`")
+            data[api_call] = getattr(self, api_call)()[api_call]["row"]
+        
+        # print(data)
+        return data
 
 class SeoulOpenData:
     """서울 공공데이터 이용 클라이언트."""
     def __init__(self):
         self.api: SeoulOpenAPI = SeoulOpenAPI()
+        self.data: dict[str, dict[str, Any]] = {}
     
     def prefetch(self):
-        self.api.fetchall()
+        data: dict[str, list[dict[str, Any]]] = self.api.fetchall()
+        for childSchoolData in data.values():
+            for e in childSchoolData:
+                uniqueKey: str = e[ChildSchoolUniqueKey]
+                if uniqueKey not in self.data:
+                    self.data[uniqueKey] = e
+                self.data[uniqueKey].update(e)
+    
+    def create(self):
+        """Create ChildSchool entries on firebase."""
+        print(f"Creating ChildSchool {len(self.data)} entries on firebase...")
+        for data in self.data.values():
+            print(f"SeoulOpenData.create() : code = {data['KINDERCODE']}")
+            addr: str = data["ADDR"]
+            addrMatch: Optional[re.Match] = LocationRegex.match(addr)
+            if addrMatch is None:
+                continue
+            # print(addrMatch.groups())
+            
+            location: Location = Location(addrMatch.group(1))
+            DB.childSchool.create({
+                "code": data["KINDERCODE"],
+                "name": data["KINDERNAME"],
+                "representerName": data["RPPNNAME"],
+                "location": location,
+                "address": addr,
+                "establishType": EstablishType(data["ESTABLISH"][:2]),
+                "establishAt": data["EDATE"],
+                "openingTime": data["OPERTIME"],
+                "tel": data["TELNO"],
+            })
+        print("Done!")
+        
+    def test(self):
+        self.api.childSchoolInfo()
+        self.api.childSchoolClassArea()
+        
+
+if __name__ == "__main__":
+    os.environ["SEOUL_OPENDATA_KEY"] = "6c514452756c61703839496c494c72"
+    client = SeoulOpenData()
+    client.prefetch()
+    client.api.saveData(client.data, "formatted")
