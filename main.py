@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+import uvicorn
 from setup import set_keys
 from seoul_opendata.firebase.controller import DB
 from seoul_opendata.seoul_openapi import SeoulOpenData
@@ -63,3 +64,13 @@ def user_update(body: UserUpdate):
         return DB.parentUser.update(body).dict()      # login success & update success
     else:
         return {"message": "login failed", "code": "INVALID_PASSWORD"}
+
+
+if __name__ == "__main__":
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=True,
+        reload_dirs=["seoul_opendata/"]
+    )
