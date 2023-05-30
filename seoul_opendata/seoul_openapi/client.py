@@ -19,11 +19,12 @@ class OpenApiOptionExtras(TypedDict):
     endIndex: int
         
 
-def opendata(options: Optional[OpenApiOptionExtras] = {"startIndex": 1, "endIndex": 1000}):
+def opendata(collect: bool = True, startIndex: int = 1, endIndex: int = 1000):
     """공공데이터 api를 호출하는 메소드를 자동 구현하는 데코레이터입니다.
     API의 서비스 명칭이 모두 childSchool~로 시작한다는 점에서 착안했습니다.
 
     Args:
+        collect: (bool) fetchall()의 대상으로 이 메소드를 등록할지의 여부를 결정합니다. 기본 값은 True입니다.
         options (Optional[OpenApiOptionExtras], optional): 가져올 데이터의 시작 인덱스와 끝 인덱스를 설정합니다. 기본 값은 1부터 1000입니다.
     """
     def openDataDeco(meth: Callable[["SeoulOpenAPI"], Any]) -> Callable[["SeoulOpenAPI"], dict[str, Any]]:
@@ -43,9 +44,7 @@ def opendata(options: Optional[OpenApiOptionExtras] = {"startIndex": 1, "endInde
             Returns:
                 dict[str, Any]: api의 응답 데이터.
             """
-            url=f"{self.base}/json/{meth.__name__}"
-            if options is not None:
-                url += f"/{options['startIndex']}/{options['endIndex']}"
+            url=f"{self.base}/json/{meth.__name__}/{startIndex}/{endIndex}"
                 
             resp: requests.Response = self.session.get(url)
             # print(resp.content)
@@ -58,7 +57,8 @@ def opendata(options: Optional[OpenApiOptionExtras] = {"startIndex": 1, "endInde
             self.saveData(data, meth.__name__)
             return data
         
-        OpenDataAPICallers.append(wrapper.__name__)
+        if collect:
+            OpenDataAPICallers.append(wrapper.__name__)
         return wrapper
     return openDataDeco
 
@@ -218,6 +218,16 @@ class SeoulOpenAPI:
         
         # print(data)
         return data
+    
+    @opendata(collect=False)
+    def TnFcltySttusInfo2001(self):
+        """
+        서울시 지역보육 문화행사 정보
+        지역보육정보 중 문화행사 정보(최근1년자료)
+        
+        Reference:
+            http://data.seoul.go.kr/dataList/OA-20975/S/1/datasetView.do
+        """
 
 class SeoulOpenData:
     """서울 공공데이터 이용 클라이언트."""
@@ -238,7 +248,7 @@ class SeoulOpenData:
         """Create ChildSchool entries on firebase."""
         print(f"Creating ChildSchool {len(self.data)} entries on firebase...")
         for data in self.data.values():
-            print(f"SeoulOpenData.create() : code = {data['KINDERCODE']}")
+            # print(f"SeoulOpenData.create() : code = {data['KINDERCODE']}")
             addr: str = data["ADDR"]
             addrMatch: Optional[re.Match] = LocationRegex.match(addr)
             if addrMatch is None:

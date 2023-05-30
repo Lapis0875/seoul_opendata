@@ -1,9 +1,53 @@
-from datetime import date
-from typing import Optional, Required, TypedDict
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Optional, Required, TypedDict, TypeVar
 from seoul_opendata.models.establish_type import EstablishType
 from seoul_opendata.models.location import Location
 
-from seoul_opendata.models.user import Gender
+if TYPE_CHECKING:
+    from seoul_opendata.models.user import Gender, ParentUser
+    from seoul_opendata.models.facility import ChildSchool
+
+# Response Data
+
+class Message(TypedDict, total=False):
+    message: str
+    code: Required[str]
+    api_version: str
+
+M = TypeVar("M")    # Model for Response.
+ModelOrMessage = M | Message
+
+# Child Data
+class ChildData(TypedDict):
+    name: str
+    age: int
+    parent_id: str
+    school_code: str | None
+
+# Child Data
+class ChildObject(TypedDict):
+    name: str
+    age: int
+    parent: ParentUser
+    school: ChildSchool | None
+
+# Child Data
+class ChildRead(TypedDict):
+    uuid: str
+    name: str
+    age: int
+    parent_id: str
+    school_code: str | None
+
+# Child Data
+class ChildDelete(TypedDict):
+    uuid: str
+    name: str
+    age: int
+    parent_id: str
+    school_code: str | None
+
 # User Data
 
 class UserCreate(TypedDict, total=False):
@@ -87,3 +131,4 @@ class ChildSchoolData(TypedDict):
     establishType: EstablishType    # 설립유형
     establishAt: str                # 설립일자
     openingTime: str                # 운영 시간
+    children: list[ChildData]
