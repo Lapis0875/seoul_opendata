@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 from datetime import date
-from typing import Any, cast
+from typing import Any
+from uuid import UUID
 
 from pydantic import BaseModel, Field
+
+from seoul_opendata.utils.dateutils import date2str
 from .location import Location
 from .establish_type import EstablishType
 from .user import UserBase
@@ -21,7 +24,8 @@ class ChildSchool(BaseModel):
     establishType: EstablishType                        # 설립유형
     establishAt: date                                   # 설립일자
     openingTime: str                                    # 운영 시간
-    child: list[Child] = Field(default_factory=list)    # 해당 시설에 등록된 아이들
+    articles: list[UUID]                                # 시설이 등록한 게시글 id 목록
+    children: list[Child] = Field(default_factory=list)    # 해당 시설에 등록된 아이들
     
     def __init__(self, **data):
         datestr: str = data["establishAt"]
@@ -31,11 +35,16 @@ class ChildSchool(BaseModel):
     def dict(self, *args, **kwargs) -> dict[str, Any]:
         data: dict = super().dict(*args, **kwargs)
         dateObj: date = data["establishAt"]
-        data["establishAt"] = f"{dateObj.year}{dateObj.month:02d}{dateObj.day}"
+        data["establishAt"] = date2str(self.establishAt)
+        data["children"] = [c.id for c in self.children]
         return data
 
 class ChildSchoolUser(UserBase):
     """기관 유저 모델."""
     childSchool: ChildSchool
-    children: list[Child] = Field(default_factory=list)
+    email: str
+
+    @property
+    def children(self) -> list[Child]:
+        return self.childSchool.children
     

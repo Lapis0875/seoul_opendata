@@ -1,22 +1,23 @@
 from .location import Location
 from .establish_type import EstablishType
-from .user import UserBase, ParentUser
-from .facility import ChildSchool, ChildSchoolUser
+from .user import Gender, UserBase, ParentUser
+from .child_school import ChildSchool, ChildSchoolUser
 from .child import Child
 from .article import Article
 from . import payloads
 
-refMap: dict[str, type] = {
-    Location.__name__: Location,
-    EstablishType.__name__: EstablishType,
-    UserBase.__name__: UserBase,
-    ParentUser.__name__: ParentUser,
-    ChildSchool.__name__: ChildSchool,
-    ChildSchoolUser.__name__: ChildSchoolUser,
-    Child.__name__: Child,
-    Article.__name__: Article
-}
-print(refMap)
+__all__ = (
+    "Location",
+    "EstablishType",
+    "Gender",
+    "UserBase",
+    "ParentUser",
+    "ChildSchool",
+    "ChildSchoolUser",
+    "Child",
+    "Article",
+    "payloads"
+)
 
 ParentUser.update_forward_refs(Child=Child)
 ChildSchool.update_forward_refs(Child=Child)

@@ -1,3 +1,4 @@
+from contextlib import suppress
 from functools import wraps
 import json
 import os
@@ -6,17 +7,69 @@ from typing import Any, Callable, ClassVar, Final, Optional, TypedDict
 
 import requests
 
-from seoul_opendata.firebase.controller import DB
-from seoul_opendata.models.facility import EstablishType
+from seoul_opendata.firebase.controller import DB, EntryAlreadyExist
+from seoul_opendata.models.article import Article
+from seoul_opendata.models.child_school import EstablishType
 from seoul_opendata.models.location import Location
+from seoul_opendata.models.payloads import ArticleCreate, ChildSchoolCreate
+from seoul_opendata.utils.dateutils import yyyy_mm_dd2date
+from seoul_opendata.utils.location_utils import parse_location
 
 ChildSchoolUniqueKey: Final[str] = "KINDERCODE"
 OpenDataAPICallers: Final[list[str]] = []
-LocationRegex: Final[re.Pattern] = re.compile(r"서울특별시 ([ㄱ-ㅎ|ㅏ-ㅣ|가-힣]+구) [ㄱ-ㅎ|ㅏ-ㅣ|가-힣\d\w ]+")
 
 class OpenApiOptionExtras(TypedDict):
     startIndex: int
     endIndex: int
+
+
+def build_event(event_resp: dict[str, Any]) -> ArticleCreate:
+    """
+    행사 정보 데이터로부터 Article 객체를 생성합니다.
+    
+    Args:
+        event_resp (dict[str, Any]): api 응답에서 얻은 행사 정보의 json 객체.
+        
+    Example data:
+        {
+            "CLTUR_EVENT_ETC_NM": "금천 하모니 축제",
+            "SVC_CL_CODE": "2001",
+            "SVC_CL_NM": "문화행사(보육반장)",
+            "ATDRC_CODE": "11545",
+            "ATDRC_NM": "금천구",
+            "AGE_SE_CODE": "",
+            "AGE_SE_NM": "",
+            "X_CRDNT_VALUE": "126.89604",
+            "Y_CRDNT_VALUE": "37.45707",
+            "ZIP": "08611",
+            "BASS_ADRES": "서울특별시 금천구 시흥대로73길 70",
+            "DETAIL_ADRES": "금천구청 앞 중앙무대 (시흥동)",
+            "RNTFEE_FREE_AT": "Y",
+            "RNTFEE": "",
+            "EVENT_PD_BGNDE": "2023-05-13",
+            "EVENT_PD_ENDDE": "2023-05-14",
+            "GUIDANCE_URL": "",
+            "EVENT_FCLTY_NM": "금천문화재단",
+            "REGIST_DT": "2023-04-29 02:37:02.0",
+            "UPDT_DT": ""
+        },
+    """
+    location: Location = Location(event_resp["ATDRC_NM"])
+    
+    content: str = f"{event_resp['CLTUR_EVENT_ETC_NM']}\n" + \
+                f"행사 장소: {event_resp['BASS_ADRES']} {event_resp['DETAIL_ADRES']}\n" + \
+                f"행사 기간: {event_resp['EVENT_PD_BGNDE']} {event_resp['EVENT_PD_ENDDE']}\n" + \
+                f"행사 주최: {event_resp['EVENT_FCLTY_NM']}\n" + \
+                f"행사 종류: {event_resp['SVC_CL_NM']}"
+    
+    return ArticleCreate(
+        title=event_resp["CLTUR_EVENT_ETC_NM"],
+        content=content,
+        attachments=[],
+        location=location,
+        childSchoolId=None,
+        uploadAt=event_resp["REGIST_DT"]
+    )
         
 
 def opendata(collect: bool = True, startIndex: int = 1, endIndex: int = 1000):
@@ -234,6 +287,7 @@ class SeoulOpenData:
     def __init__(self):
         self.api: SeoulOpenAPI = SeoulOpenAPI()
         self.data: dict[str, dict[str, Any]] = {}
+        self.events: list[Article] = []
     
     def prefetch(self):
         data: dict[str, list[dict[str, Any]]] = self.api.fetchall()
@@ -243,6 +297,10 @@ class SeoulOpenData:
                 if uniqueKey not in self.data:
                     self.data[uniqueKey] = e
                 self.data[uniqueKey].update(e)
+        
+        eventData: dict[str, Any] = self.api.TnFcltySttusInfo2001()
+        for event in eventData["TnFcltySttusInfo2001"]["row"]:
+            self.events.append(DB.article.create(build_event(event)))
     
     def create(self):
         """Create ChildSchool entries on firebase."""
@@ -251,23 +309,23 @@ class SeoulOpenData:
         for data in self.data.values():
             # print(f"SeoulOpenData.create() : code = {data['KINDERCODE']}")
             addr: str = data["ADDR"]
-            addrMatch: Optional[re.Match] = LocationRegex.match(addr)
-            if addrMatch is None:
-                continue
-            # print(addrMatch.groups())
             
-            location: Location = Location(addrMatch.group(1))
-            DB.childSchool.create({
-                "code": data["KINDERCODE"],
-                "name": data["KINDERNAME"],
-                "representerName": data["RPPNNAME"],
-                "location": location,
-                "address": addr,
-                "establishType": EstablishType(data["ESTABLISH"][:2]),
-                "establishAt": data["EDATE"],
-                "openingTime": data["OPERTIME"],
-                "tel": data["TELNO"],
-            })
+            location: Location | None = parse_location(addr)
+            if location is None:
+                continue
+            with suppress(EntryAlreadyExist):
+                DB.childSchool.create(ChildSchoolCreate(
+                    code=data["KINDERCODE"],
+                    name=data["KINDERNAME"],
+                    representerName=data["RPPNNAME"],
+                    location=location,
+                    address=addr,
+                    establishType=EstablishType(data["ESTABLISH"][:2]),
+                    establishAt=data["EDATE"],
+                    openingTime=data["OPERTIME"],
+                    tel=data["TELNO"],
+                    children=[]
+                ))
         print("Done!")
         
     def test(self):

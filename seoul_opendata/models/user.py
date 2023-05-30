@@ -17,14 +17,13 @@ class UserBase(BaseModel):
     id: str
     password: str
     name: str
-    phone: str
+    tel: str
     email: Optional[str]
-    age: int
-    gender: Gender
-    location: Location
 
 class ParentUser(UserBase):
     """부모 유저 모델."""
 
+    gender: Gender
     enrolled: bool = False                                  # 자녀가 유치원에 가입했는지 여부를 기록.
     children: list[Child] = Field(default_factory=list)     # 자녀 목록
+    location: Location                                      # 거주 지역
