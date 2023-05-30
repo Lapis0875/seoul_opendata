@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional, Required, TypedDict, TypeVar
-from seoul_opendata.models.establish_type import EstablishType
-from seoul_opendata.models.location import Location
-
-if TYPE_CHECKING:
-    from seoul_opendata.models.user import Gender, ParentUser
-    from seoul_opendata.models.facility import ChildSchool
+from typing import Optional, Required, TypedDict, TypeVar
+from .establish_type import EstablishType
+from .location import Location
+from .facility import ChildSchool
+from .user import Gender, ParentUser
 
 # Response Data
 

@@ -1,18 +1,13 @@
 from __future__ import annotations
 
 from datetime import date
-from typing import TYPE_CHECKING, cast
+from typing import Any, cast
 
 from pydantic import BaseModel, Field
-from seoul_opendata.models.establish_type import EstablishType
-
-from seoul_opendata.models.location import Location
-from seoul_opendata.models.payloads import ChildSchoolData
-from seoul_opendata.models.user import UserBase
-
-
-if TYPE_CHECKING:
-    from .child import Child
+from .location import Location
+from .establish_type import EstablishType
+from .user import UserBase
+from .child import Child
 
 
 class ChildSchool(BaseModel):
@@ -33,11 +28,11 @@ class ChildSchool(BaseModel):
         data["establishAt"] = date(int(datestr[:4]), int(datestr[4:6]), int(datestr[6:]))
         super().__init__(**data)
     
-    def dict(self, *args, **kwargs) -> ChildSchoolData:
+    def dict(self, *args, **kwargs) -> dict[str, Any]:
         data: dict = super().dict(*args, **kwargs)
         dateObj: date = data["establishAt"]
         data["establishAt"] = f"{dateObj.year}{dateObj.month:02d}{dateObj.day}"
-        return cast(ChildSchoolData, data)
+        return data
 
 class ChildSchoolUser(UserBase):
     """기관 유저 모델."""

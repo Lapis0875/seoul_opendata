@@ -247,6 +247,7 @@ class SeoulOpenData:
     def create(self):
         """Create ChildSchool entries on firebase."""
         print(f"Creating ChildSchool {len(self.data)} entries on firebase...")
+        return
         for data in self.data.values():
             # print(f"SeoulOpenData.create() : code = {data['KINDERCODE']}")
             addr: str = data["ADDR"]

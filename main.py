@@ -3,7 +3,7 @@ from seoul_opendata.models import Child, ChildSchool, ParentUser
 from setup import set_keys
 from seoul_opendata.firebase.controller import DB
 from seoul_opendata.seoul_openapi import SeoulOpenData
-from seoul_opendata.models.payloads import ChildData, ChildObject, ChildRead, ChildSchoolCreate, ChildSchoolUpdate, ModelOrMessage, UserCreate, UserLogin, UserRead, UserUpdate, Message
+from seoul_opendata.models.payloads import ChildData, ChildRead, ChildSchoolCreate, ChildSchoolUpdate, ModelOrMessage, UserCreate, UserLogin, UserRead, UserUpdate, Message
 
 set_keys()
 app = FastAPI()
@@ -15,7 +15,7 @@ seoulOpenAPI.create()
 # Sample Endpoints
 
 @app.get("/")
-def index() -> Message:
+def index():
     """
     index 요청입니다. 그냥 서버 상태 확인이에요.
     
@@ -25,7 +25,7 @@ def index() -> Message:
     return {"message": "Server Online!", "api_version": "20230530", "code": "OK"}
 
 @app.get("/echo/{text}")
-def echo(text: str) -> Message:
+def echo(text: str):
     """
     echo 요청입니다. URL 파라미터로 받은 문자열을 그대로 보내줍니다. 서버 상태 확인을 위해 존재합니다.
 
@@ -39,8 +39,8 @@ def echo(text: str) -> Message:
 
 # ChildSchool Endpoints
 
-@app.get("/childschool/all", response_model=dict[str, ChildSchool])
-def get_all_childschools() -> dict[str, ChildSchool]:
+@app.get("/childschool/all")
+def get_all_childschools():
     """
     모든 유치원 정보를 가져옵니다.
 
@@ -49,8 +49,8 @@ def get_all_childschools() -> dict[str, ChildSchool]:
     """
     return DB.childSchool.read_all()
 
-@app.get("/childschool/{code}", response_model=ChildSchool)
-def get_childschool(code: str) -> ModelOrMessage[ChildSchool]:
+@app.get("/childschool/{code}")
+def get_childschool(code: str):
     """
     특정 코드의 유치원 정보를 가져옵니다.
 
@@ -63,7 +63,7 @@ def get_childschool(code: str) -> ModelOrMessage[ChildSchool]:
     childSchool = DB.childSchool.read({"code": code})
     return childSchool or {"message": "유치원 정보를 찾을 수 없습니다.", "code": "INVALID_SCHOOL_CODE"}
 
-@app.post("/childschool", response_model=ChildSchool)
+@app.post("/childschool")
 def create_childschool(body: ChildSchoolCreate):
     """
     새 유치원 모델을 생성합니다.
@@ -77,8 +77,8 @@ def create_childschool(body: ChildSchoolCreate):
     childSchool = DB.childSchool.create(body)
     return childSchool.dict() or {}
 
-@app.post("/childschool/{code}", response_model=ChildSchool)
-def update_childschool(code: str, body: ChildSchoolUpdate) -> ChildSchool | Message:
+@app.post("/childschool/{code}")
+def update_childschool(code: str, body: ChildSchoolUpdate):
     """
     유치원 정보를 수정합니다.
     Args:
@@ -97,7 +97,7 @@ def update_childschool(code: str, body: ChildSchoolUpdate) -> ChildSchool | Mess
 
 # User Endpoints
 
-@app.post("/users/signup", response_model=ParentUser)
+@app.post("/users/signup")
 def user_signup(body: UserCreate) -> ParentUser:
     """
     회원가입 엔드포인트입니다. 새 유저 데이터를 생성합니다.
@@ -111,8 +111,8 @@ def user_signup(body: UserCreate) -> ParentUser:
     user = DB.parentUser.create(body)
     return user
 
-@app.post("/users/login", response_model=ParentUser)
-def user_login(body: UserLogin) -> ModelOrMessage[ParentUser]:
+@app.post("/users/login")
+def user_login(body: UserLogin):
     """
     로그인 엔드포인트입니다. 기존 유저 계정으로 로그인합니다.
 
@@ -128,8 +128,8 @@ def user_login(body: UserLogin) -> ModelOrMessage[ParentUser]:
     else:
         return {"message": "login failed", "code": "INVALID_PASSWORD"}
 
-@app.post("/users/update", response_model=ParentUser)
-def user_update(body: UserUpdate) -> ModelOrMessage[ParentUser]:
+@app.post("/users/update")
+def user_update(body: UserUpdate):
     """
     기존 유저 정보를 수정합니다.
 
@@ -151,8 +151,8 @@ def user_update(body: UserUpdate) -> ModelOrMessage[ParentUser]:
 
 # Child Endpoints
 
-@app.post("/children/register", response_model=Child)
-def child_register(body: ChildData) -> ModelOrMessage[Child]:
+@app.post("/children/register")
+def child_register(body: ChildData):
     """
     아이 정보를 등록합니다.
 
@@ -167,8 +167,8 @@ def child_register(body: ChildData) -> ModelOrMessage[Child]:
         return {"message": "fail to create child", "code": "INVALID_CHILD_DATA"}
     return child
 
-@app.post("/children/update", response_model=Child)
-def child_update(body: ChildRead) -> ModelOrMessage[Child]:
+@app.post("/children/update")
+def child_update(body: ChildRead):
     """
     아이 정보를 수정합니다.
 

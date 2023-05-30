@@ -21,5 +21,6 @@ print(refMap)
 ParentUser.update_forward_refs(Child=Child)
 ChildSchool.update_forward_refs(Child=Child)
 ChildSchoolUser.update_forward_refs(Child=Child)
+Child.update_forward_refs(ParentUser=ParentUser, ChildSchool=ChildSchool)
 
 print("Forward Reference Resolved.")
