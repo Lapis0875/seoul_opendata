@@ -12,11 +12,12 @@ from seoul_opendata.models.article import Article
 from seoul_opendata.models.child_school import EstablishType
 from seoul_opendata.models.location import Location
 from seoul_opendata.models.payloads import ArticleCreate, ChildSchoolCreate
-from seoul_opendata.utils.dateutils import yyyy_mm_dd2date
 from seoul_opendata.utils.location_utils import parse_location
+from setup import set_keys
 
 ChildSchoolUniqueKey: Final[str] = "KINDERCODE"
 OpenDataAPICallers: Final[list[str]] = []
+set_keys()
 
 class OpenApiOptionExtras(TypedDict):
     startIndex: int

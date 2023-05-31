@@ -1,14 +1,12 @@
 from __future__ import annotations
 from datetime import date
-from turtle import st
 
-from typing import Optional, Required, TypedDict, TypeVar
+from typing import Optional, TypedDict, TypeVar
 
 from pydantic import BaseModel, Field
 from .establish_type import EstablishType
 from .location import Location
-from .child_school import ChildSchool
-from .user import Gender, ParentUser
+from .user import Gender
 
 # Response Data
 
