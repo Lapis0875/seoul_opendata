@@ -1,6 +1,8 @@
+from pydantic import ValidationError
 from fastapi import FastAPI, Request, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
+
 from seoul_opendata.routes import user_router, child_school_router, child_router
 from seoul_opendata.firebase.controller import DBException
 from seoul_opendata.seoul_openapi import SeoulOpenData
@@ -19,6 +21,18 @@ async def handle_db_exception(request: Request, exc: DBException):
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content=jsonable_encoder(exc.message)
     )
+
+@app.exception_handler(ValidationError)
+async def handle_type_exception(request: Request, exc: ValidationError):
+    return JSONResponse(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        content=jsonable_encoder({
+            "message": "Type Validation Failed.",
+            "code": "TYPE_VALIDATION_FAILED",
+            "details": exc.errors()
+        })
+    )
+
 
 @app.get("/")
 def index():

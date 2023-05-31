@@ -502,6 +502,46 @@ class ArticleRepository(CRUDRepository):
     
         return res
     
+    def readAllEventArticles(self) -> dict[str, Article]:
+        data: dict[str, ArticleData] | None = cast(dict[str, ArticleData] | None, self.repo.child("events").get())
+        res: dict[str, Article] = {}
+        
+        if data is None:
+            return {}
+        
+        for articleId, articleData in data.items():
+            res[articleId] = Article(
+                title=articleData["title"],
+                content=articleData["content"],
+                attachments=articleData["attachments"],
+                location=Location(articleData["location"]),
+                uploadAt=str2date(articleData["uploadAt"]),
+                childSchool=None
+            )
+    
+        return res
+    
+    def readAllChildSchoolArticles(self, childSchoolId: str) -> dict[str, Article]:
+        data: dict[str, ArticleData] | None = cast(dict[str, ArticleData] | None, self.repo.child(childSchoolId).get())
+        res: dict[str, Article] = {}
+        
+        if data is None:
+            return {}
+
+        childSchool = self.childSchoolRepo.read(ChildSchoolRead(code=childSchoolId))
+        
+        for articleId, articleData in data.items():
+            res[articleId] = Article(
+                title=articleData["title"],
+                content=articleData["content"],
+                attachments=articleData["attachments"],
+                location=Location(articleData["location"]),
+                uploadAt=str2date(articleData["uploadAt"]),
+                childSchool=childSchool
+            )
+    
+        return res
+    
     def readEventArticle(self, payload: ArticleRead) -> Article:
         data: ArticleData | None = cast(ArticleData | None, self.repo.child(f"events/{payload.id}").get())
         
